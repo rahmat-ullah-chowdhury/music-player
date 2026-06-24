@@ -1,6 +1,5 @@
 import os
 import sys
-import random
 
 # Fix imports
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -10,9 +9,14 @@ if ROOT not in sys.path:
 from player.library import build_library
 from player.audio_engine import AudioEngine
 
-library = build_library("songs")
+# Build music library
+songs_folder = os.path.join(ROOT, "songs")
+library = build_library(songs_folder)
+
+# Audio player
 engine = AudioEngine()
 
+# Keep track of currently playing song
 current_song_index = None
 
 while True:
@@ -23,16 +27,14 @@ while True:
     print("3. Stop Song")
     print("4. Next Song")
     print("5. Previous Song")
-    print("6. Search Song")
-    print("7. Shuffle Song")
-    print("8. Exit")
+    print("6. Exit")
 
     choice = input("Choice: ")
 
-    # Show Songs
+    # Show songs
     if choice == "1":
 
-        print("\n===== SONG LIST =====\n")
+        print("\n===== SONG LIST =====")
 
         for i, song in enumerate(library, start=1):
 
@@ -41,7 +43,7 @@ while True:
                 f"({song['duration']})"
             )
 
-    # Play Song
+    # Play selected song
     elif choice == "2":
 
         song_number = int(input("Song number: "))
@@ -60,14 +62,14 @@ while True:
 
             print("Invalid song number.")
 
-    # Stop Song
+    # Stop song
     elif choice == "3":
 
         engine.stop()
 
         print("Song stopped.")
 
-    # Next Song
+    # Next song
     elif choice == "4":
 
         if current_song_index is None:
@@ -87,7 +89,7 @@ while True:
 
             engine.play(selected_song["path"])
 
-    # Previous Song
+    # Previous song
     elif choice == "5":
 
         if current_song_index is None:
@@ -107,48 +109,16 @@ while True:
 
             engine.play(selected_song["path"])
 
-    # Search Song
-    elif choice == "6":
-
-        search_term = input("Search: ").lower()
-
-        found = False
-
-        print("\n===== SEARCH RESULTS =====\n")
-
-        for index, song in enumerate(library, start=1):
-
-            if search_term in song["title"].lower():
-
-                print(
-                    f"{index}. {song['title']} "
-                    f"({song['duration']})"
-                )
-
-                found = True
-
-        if not found:
-
-            print("No songs found.")
-
-    # Shuffle Song
-    elif choice == "7":
-
-        selected_song = random.choice(library)
-
-        print(f"\nNow Playing: {selected_song['title']}")
-
-        engine.play(selected_song["path"])
-
     # Exit
-    elif choice == "8":
+    elif choice == "6":
 
         engine.stop()
 
         print("Goodbye!")
-
         break
 
     else:
+
+        print("Invalid choice.")
 
         print("Invalid choice.")

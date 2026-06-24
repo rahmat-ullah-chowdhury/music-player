@@ -1,24 +1,54 @@
+import os
 import subprocess
-import re
 
 def extract_metadata(song_path):
 
+    title = None
+    artist = None
+    album = None
+    duration = None
+
     result = subprocess.run(
-        ["ffmpeg", "-i", str(song_path)],
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format_tags=title:format_tags=artist:format_tags=album:format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            str(song_path),
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
 
-    output = result.stderr
+    if result.returncode == 0:
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("TAG:title="):
+                title = line.split("=", 1)[1]
+            elif line.startswith("TAG:artist="):
+                artist = line.split("=", 1)[1]
+            elif line.startswith("TAG:album="):
+                album = line.split("=", 1)[1]
+            elif line.startswith("duration="):
+                duration = line.split("=", 1)[1]
 
-    title = re.search(r"title\s*:\s*(.+)", output)
-    artist = re.search(r"artist\s*:\s*(.+)", output)
-    album = re.search(r"album\s*:\s*(.+)", output)
-    duration = re.search(r"Duration:\s*([0-9:.]+)", output)
+    if not title:
+        title = os.path.splitext(os.path.basename(song_path))[0]
+    if not artist:
+        artist = "Unknown"
+    if not album:
+        album = "Unknown"
+    if not duration:
+        duration = "Unknown"
 
     return {
-        "title": title.group(1) if title else "Unknown",
-        "artist": artist.group(1) if artist else "Unknown",
-        "album": album.group(1) if album else "Unknown",
-        "duration": duration.group(1) if duration else "Unknown"
+        "title": title,
+        "artist": artist,
+        "album": album,
+        "duration": duration,
     }
